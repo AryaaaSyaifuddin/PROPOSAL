@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hasil Prediksi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; padding-top: 20px; }
+        .result-card { border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .diagnosis-box { border-radius: 10px; padding: 30px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Back Button -->
+        <div class="mb-4">
+            <a href="/" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Kembali ke Input
+            </a>
+        </div>
+
+        {% if batch %}
+        <!-- Batch Results -->
+        <div class="card result-card">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0"><i class="fas fa-file-excel"></i> HASIL PREDIKSI BATCH</h3>
+            </div>
+            <div class="card-body">
+                <!-- Summary -->
+                <div class="alert alert-info">
+                    <h4><i class="fas fa-chart-bar"></i> Ringkasan Hasil</h4>
+                    <div class="row text-center mt-3">
+                        <div class="col-md-3">
+                            <div class="display-4 fw-bold">{{ summary.total_pasien }}</div>
+                            <div>Total Pasien</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="display-4 fw-bold text-danger">{{ summary.positif }}</div>
+                            <div>Pre-eklampsia (Positif)</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="display-4 fw-bold text-success">{{ summary.negatif }}</div>
+                            <div>Tidak Pre-eklampsia (Negatif)</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="display-4 fw-bold text-primary">
+                                {{ summary.persentase_positif }}
+                            </div>
+                            <div>Persentase Positif</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sample Data -->
+                <h5 class="mt-4"><i class="fas fa-table"></i> Preview Data (5 pertama)</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>No</th>
+                                {% for key in sample_data[0].keys() %}
+                                    {% if not key.startswith('_') %}
+                                    <th>{{ key }}</th>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in sample_data %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                {% for key, value in item.items() %}
+                                    {% if not key.startswith('_') %}
+                                    <td>
+                                        {% if value is number %}
+                                            {% if key == 'diagnosis' %}
+                                                {{ value }}
+                                            {% else %}
+                                                {{ "%.2f"|format(value) if value|float != value|int else value|int }}
+                                            {% endif %}
+                                        {% else %}
+                                            {{ value }}
+                                        {% endif %}
+                                    </td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Actions -->
+                <div class="d-grid gap-3 mt-4">
+                    <a href="/download" class="btn btn-primary btn-lg">
+                        <i class="fas fa-download"></i> DOWNLOAD FULL RESULT (Excel)
+                    </a>
+                    <a href="/" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-redo"></i> INPUT DATA BARU
+                    </a>
+                </div>
+
+                <div class="mt-4 text-center text-muted">
+                    <small><i class="fas fa-info-circle"></i> File tersimpan di: {{ summary.file_output }}</small>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- Single Result -->
+        <div class="card result-card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0"><i class="fas fa-clipboard-check"></i> HASIL DIAGNOSIS</h3>
+            </div>
+            <div class="card-body">
+                <!-- Diagnosis Result -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="diagnosis-box text-center py-4 bg-{{ result.diagnosis_class }} text-white">
+                            <h1 class="display-4 fw-bold mb-3">
+                                <i class="fas fa-{% if result.diagnosis_class == 'danger' %}exclamation-triangle{% else %}check-circle{% endif %}"></i>
+                                {{ result.diagnosis }}
+                            </h1>
+                            <h3 class="mb-4">Probabilitas: {{ result.probabilitas }}</h3>
+                            <p class="lead mb-0">
+                                Threshold: {{ result.threshold }} | 
+                                Prediksi Numerik: {{ result.prediksi_numerik }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Data -->
+                <h5><i class="fas fa-clipboard-list"></i> Data Input Pasien</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <tbody>
+                            {% for key, value in result.input_data.items() %}
+                            <tr>
+                                <th style="width: 30%">{{ key }}</th>
+                                <td>
+                                    {% if value is number %}
+                                        {{ "%.2f"|format(value) if value|float != value|int else value|int }}
+                                    {% else %}
+                                        {{ value }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Recommendations -->
+                <div class="alert alert-info mt-4">
+                    <h5><i class="fas fa-lightbulb"></i> Rekomendasi:</h5>
+                    {% if result.diagnosis == 'PRE-EKLAMPSIA' %}
+                    <ul class="mb-0">
+                        <li><strong>Segera konsultasikan dengan dokter kandungan</strong></li>
+                        <li>Monitor tekanan darah secara rutin (2x sehari)</li>
+                        <li>Istirahat yang cukup dan hindari stres</li>
+                        <li>Kurangi asupan garam dalam makanan</li>
+                        <li>Lakukan pemeriksaan urine berkala</li>
+                        <li>Segera ke IGD jika ada gejala sakit kepala hebat atau penglihatan kabur</li>
+                    </ul>
+                    {% else %}
+                    <ul class="mb-0">
+                        <li><strong>Lanjutkan pola hidup sehat</strong></li>
+                        <li>Rutin kontrol kehamilan sesuai jadwal</li>
+                        <li>Monitor tekanan darah mingguan</li>
+                        <li>Konsumsi nutrisi seimbang dan suplemen jika diperlukan</li>
+                        <li>Segera konsultasi jika ada gejala yang mencurigakan</li>
+                    </ul>
+                    {% endif %}
+                </div>
+
+                <!-- Actions -->
+                <div class="d-grid gap-3 mt-4">
+                    <a href="/download" class="btn btn-success btn-lg">
+                        <i class="fas fa-file-excel"></i> SIMPAN KE EXCEL
+                    </a>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <a href="/" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-plus-circle"></i> INPUT PASIEN BARU
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="/" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-redo"></i> PREDIKSI LAGI
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metadata -->
+                <div class="mt-4 text-center text-muted">
+                    <small>
+                        <i class="fas fa-clock"></i> Waktu prediksi: {{ result.waktu }} |
+                        <i class="fas fa-database"></i> Total data tersimpan: {{ result.total_data }} |
+                        <i class="fas fa-save"></i> File: {{ result.file_output }}
+                    </small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</body>
+</html>

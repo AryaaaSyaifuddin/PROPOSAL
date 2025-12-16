@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Prediksi Pre-Eklampsia</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2c5aa0;
+            --primary-light: #3b82f6;
+            --primary-dark: #1e40af;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --light-color: #f8fafc;
+            --dark-color: #1e293b;
+            --gray-color: #64748b;
+            --border-color: #e2e8f0;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            color: var(--dark-color);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .app-container {
+            max-width: 80%;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        
+        /* Header */
+        .app-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 32px;
+            border-radius: 16px;
+            margin-bottom: 32px;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(60px, -60px);
+        }
+        
+        .app-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+            transform: translate(-50px, 50px);
+        }
+        
+        .app-title {
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .app-subtitle {
+            font-size: 1.125rem;
+            opacity: 0.9;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Metrics Card */
+        .metrics-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .metrics-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+        
+        .metric-item {
+            text-align: center;
+            padding: 10px;
+        }
+        
+        .metric-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin-bottom: 4px;
+        }
+        
+        .metric-label {
+            font-size: 0.75rem;
+            color: var(--gray-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Cards */
+        .card {
+            background: white;
+            border: none;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--hover-shadow);
+        }
+        
+        .card-header {
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+            padding: 24px;
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: var(--dark-color);
+        }
+        
+        .card-body {
+            padding: 24px;
+        }
+        
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-label i {
+            color: var(--primary-color);
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .form-control::placeholder {
+            color: #94a3b8;
+        }
+        
+        /* BMI Options */
+        .bmi-options {
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            background: #f8fafc;
+        }
+        
+        .bmi-option {
+            margin-bottom: 15px;
+        }
+        
+        .bmi-input-group {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--border-color);
+        }
+        
+        .height-weight-group {
+            display: none;
+        }
+        
+        .height-weight-group.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(44, 90, 160, 0.2);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+        }
+        
+        .btn-outline-danger {
+            border: 2px solid var(--danger-color);
+            color: var(--danger-color);
+            background: transparent;
+        }
+        
+        .btn-outline-danger:hover {
+            background: var(--danger-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        /* Result Section */
+        .result-container {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .result-header {
+            background: linear-gradient(135deg, var(--dark-color) 0%, #334155 100%);
+            color: white;
+            padding: 40px 32px;
+            text-align: center;
+            border-radius: 16px 16px 0 0;
+        }
+        
+        .diagnosis-badge {
+            display: inline-block;
+            padding: 12px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+            border: 2px solid var(--danger-color);
+        }
+        
+        .badge-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success-color);
+            border: 2px solid var(--success-color);
+        }
+        
+        .result-details {
+            background: white;
+            padding: 32px;
+            border-radius: 0 0 16px 16px;
+        }
+        
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+        
+        .detail-item {
+            background: var(--light-color);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .detail-label {
+            font-size: 0.875rem;
+            color: var(--gray-color);
+            margin-bottom: 8px;
+        }
+        
+        .detail-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark-color);
+        }
+        
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 24px 0;
+        }
+        
+        .data-table th {
+            background: var(--light-color);
+            color: var(--dark-color);
+            font-weight: 600;
+            padding: 16px;
+            text-align: left;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .data-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .data-table tr:hover td {
+            background: #f1f5f9;
+        }
+        
+        /* Flash Messages */
+        .alert {
+            border: none;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #065f46;
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #7f1d1d;
+            border-left: 4px solid var(--danger-color);
+        }
+        
+        /* Footer */
+        .app-footer {
+            text-align: center;
+            padding: 32px 0;
+            color: var(--gray-color);
+            margin-top: 48px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .footer-text {
+            font-size: 0.875rem;
+            margin-bottom: 12px;
+        }
+        
+        /* Placeholder State */
+        .placeholder-state {
+            text-align: center;
+            padding: 64px 32px;
+        }
+        
+        .placeholder-icon {
+            font-size: 4rem;
+            color: var(--border-color);
+            margin-bottom: 24px;
+        }
+        
+        .placeholder-text {
+            color: var(--gray-color);
+            font-size: 1.125rem;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 16px;
+            }
+            
+            .app-header {
+                padding: 24px;
+            }
+            
+            .app-title {
+                font-size: 1.75rem;
+            }
+            
+            .metric-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            
+            .detail-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 12px;
+            }
+            
+            .diagnosis-badge {
+                font-size: 1.25rem;
+                padding: 10px 24px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .data-table {
+                font-size: 0.875rem;
+            }
+            
+            .data-table th,
+            .data-table td {
+                padding: 12px 8px;
+            }
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--light-color);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+        
+        /* Radio Button Styling */
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .form-check-label {
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header Section -->
+        <header class="app-header fade-in">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="app-title" style="color: #ffff">
+                        <i class="fas fa-stethoscope me-3"></i>
+                        Sistem Prediksi Pre-Eklampsia
+                    </h1>
+                    <p class="app-subtitle">
+                        Sistem cerdas berbasis Extreme Learning Machine (ELM) untuk deteksi dini pre-eklampsia
+                        <br>
+                        <small>Input Data → Analisis AI → Simpan Database → Download Excel</small>
+                    </p>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <div style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; padding: 20px;">
+                        <h3 style="color: white; font-size: 2.5rem; margin-bottom: 8px;">{{ total_pasien }}</h3>
+                        <p style="color: rgba(255, 255, 255, 0.9); margin: 0;">Total Pasien Tersimpan</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Flash Messages -->
+        <div class="mb-4">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} fade-in">
+                            <i class="fas fa-{% if category == 'success' %}check-circle{% else %}exclamation-circle{% endif %} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close float-end" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Metrik Evaluasi Model -->
+        <div class="metrics-card fade-in">
+            <div class="metrics-title">
+                <i class="fas fa-chart-line me-2"></i>
+                Metrik Evaluasi Model ELM
+            </div>
+            <div class="metric-grid">
+                <div class="metric-item">
+                    <div class="metric-value">92.56%</div>
+                    <div class="metric-label">Accuracy</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value">90.22%</div>
+                    <div class="metric-label">Precision</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value">91.21%</div>
+                    <div class="metric-label">Recall</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value">90.71%</div>
+                    <div class="metric-label">F1-Score</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value">96.90%</div>
+                    <div class="metric-label">AUC-ROC</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row g-4">
+            <!-- Left Column: Input Form -->
+            <div class="col-lg-6">
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <i class="fas fa-edit me-2"></i>
+                        Form Input Data Pasien
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="/" id="predictionForm">
+                            <div class="row">
+                                <!-- Column 1 -->
+                                <div class="col-md-6">
+                                    <!-- Demografi -->
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-user"></i>
+                                            Usia (tahun)
+                                        </label>
+                                        <input type="text" class="form-control" name="usia" 
+                                               value="{{ form_data.usia if form_data.usia else '35' }}" 
+                                               placeholder="Masukkan usia pasien" required>
+                                        <small class="text-muted">Contoh: 35 atau 28.5</small>
+                                    </div>
+                                    
+                                    <!-- BMI dengan 2 Opsi -->
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-weight"></i>
+                                            BMI (kg/m²)
+                                        </label>
+                                        
+                                        <div class="bmi-options">
+                                            <div class="bmi-option">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="bmi_method" id="bmi_direct" value="direct" checked>
+                                                    <label class="form-check-label" for="bmi_direct">
+                                                        Input BMI langsung
+                                                    </label>
+                                                </div>
+                                                <div class="bmi-input-group" id="direct_bmi_input">
+                                                    <input type="text" class="form-control" name="bmi_direct_input" 
+                                                           value="{{ form_data.bmi if form_data.bmi else '33.3' }}" 
+                                                           placeholder="Masukkan nilai BMI" id="bmi_input">
+                                                    <small class="text-muted">Indeks Massa Tubuh (kg/m²)</small>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="bmi-option">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="bmi_method" id="bmi_calculate" value="calculate">
+                                                    <label class="form-check-label" for="bmi_calculate">
+                                                        Hitung dari tinggi dan berat badan
+                                                    </label>
+                                                </div>
+                                                <div class="height-weight-group" id="height_weight_input">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group mb-3">
+                                                                <label>Tinggi Badan (cm)</label>
+                                                                <input type="text" class="form-control" id="tinggi_badan" 
+                                                                       placeholder="Contoh: 165" value="{{ form_data.tinggi_badan if form_data.tinggi_badan else '' }}">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-group mb-3">
+                                                                <label>Berat Badan (kg)</label>
+                                                                <input type="text" class="form-control" id="berat_badan" 
+                                                                       placeholder="Contoh: 65" value="{{ form_data.berat_badan if form_data.berat_badan else '' }}">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group mb-0">
+                                                        <label>Hasil BMI:</label>
+                                                        <input type="text" class="form-control" id="bmi_calculated" 
+                                                               placeholder="BMI akan dihitung otomatis" readonly>
+                                                        <small class="text-muted">Rumus: Berat(kg) / [Tinggi(m)]²</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Hidden input untuk mengirim nilai BMI ke server -->
+                                        <input type="hidden" name="bmi" id="bmi_final">
+                                    </div>
+                                    
+                                    <!-- Tekanan Darah -->
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-heartbeat"></i>
+                                            Sistolik (mmHg)
+                                        </label>
+                                        <input type="text" class="form-control" name="sistolik" 
+                                               value="{{ form_data.sistolik if form_data.sistolik else '129' }}" 
+                                               placeholder="Tekanan sistolik" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-heartbeat"></i>
+                                            Diastolik (mmHg)
+                                        </label>
+                                        <input type="text" class="form-control" name="diastolik" 
+                                               value="{{ form_data.diastolik if form_data.diastolik else '87' }}" 
+                                               placeholder="Tekanan diastolik" required>
+                                    </div>
+                                    
+                                    <!-- Proteinuria -->
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-vial"></i>
+                                            Proteinuria
+                                        </label>
+                                        <select class="form-select" name="proteinuria" required>
+                                            <option value="negatif" {% if form_data.proteinuria == 'negatif' %}selected{% endif %}>Negatif</option>
+                                            <option value="+" {% if form_data.proteinuria == '+' %}selected{% endif %}>+ (Ringan)</option>
+                                            <option value="++" {% if form_data.proteinuria == '++' %}selected{% endif %}>++ (Sedang)</option>
+                                            <option value="+++" {% if form_data.proteinuria == '+++' %}selected{% endif %}>+++ (Berat)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <!-- Column 2 -->
+                                <div class="col-md-6">
+                                    <!-- Diabetes -->
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-syringe"></i>
+                                            Diabetes
+                                        </label>
+                                        <select class="form-select" name="diabetes" required>
+                                            <option value="tidak" {% if form_data.diabetes == 'tidak' %}selected{% endif %}>Tidak</option>
+                                            <option value="iya" {% if form_data.diabetes == 'iya' %}selected{% endif %}>Iya</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- HB -->
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-tint"></i>
+                                            HB (g/dL)
+                                        </label>
+                                        <input type="text" class="form-control" name="hb" 
+                                               value="{{ form_data.hb if form_data.hb else '10.9' }}" 
+                                               placeholder="Kadar hemoglobin" required>
+                                    </div>
+                                    
+                                    <!-- Berat Janin -->
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-baby"></i>
+                                            Berat Janin (kg)
+                                        </label>
+                                        <input type="text" class="form-control" name="berat_janin" 
+                                               value="{{ form_data.berat_janin if form_data.berat_janin else '3.2' }}" 
+                                               placeholder="Perkiraan berat janin" required>
+                                    </div>
+                                    
+                                    <!-- Cairan Ketuban -->
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-water"></i>
+                                            Cairan Ketuban (cm)
+                                        </label>
+                                        <input type="text" class="form-control" name="cairan_ketuban" 
+                                               value="{{ form_data.cairan_ketuban if form_data.cairan_ketuban else '8.6' }}" 
+                                               placeholder="Volume cairan ketuban" required>
+                                    </div>
+                                    
+                                    <!-- Riwayat -->
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-history"></i>
+                                            Riwayat Hipertensi
+                                        </label>
+                                        <select class="form-select" name="riwayat_hipertensi" required>
+                                            <option value="tidak" {% if form_data.riwayat_hipertensi == 'tidak' %}selected{% endif %}>Tidak</option>
+                                            <option value="iya" {% if form_data.riwayat_hipertensi == 'iya' %}selected{% endif %}>Iya</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-users"></i>
+                                            Riwayat Keluarga
+                                        </label>
+                                        <select class="form-select" name="riwayat_keluarga" required>
+                                            <option value="tidak" {% if form_data.riwayat_keluarga == 'tidak' %}selected{% endif %}>Tidak</option>
+                                            <option value="iya" {% if form_data.riwayat_keluarga == 'iya' %}selected{% endif %}>Iya</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Primigravida & Kembar -->
+                                    <div class="row g-3">
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label class="form-label">
+                                                    <i class="fas fa-first-aid"></i>
+                                                    Primigravida
+                                                </label>
+                                                <select class="form-select" name="primigravida" required>
+                                                    <option value="tidak" {% if form_data.primigravida == 'tidak' %}selected{% endif %}>Tidak</option>
+                                                    <option value="iya" {% if form_data.primigravida == 'iya' %}selected{% endif %}>Iya</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-group">
+                                                <label class="form-label">
+                                                    <i class="fas fa-baby-carriage"></i>
+                                                    Kehamilan Kembar
+                                                </label>
+                                                <select class="form-select" name="kehamilan_kembar" required>
+                                                    <option value="tidak" {% if form_data.kehamilan_kembar == 'tidak' %}selected{% endif %}>Tidak</option>
+                                                    <option value="iya" {% if form_data.kehamilan_kembar == 'iya' %}selected{% endif %}>Iya</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Submit Button -->
+                            <div class="text-center mt-4 pt-3 border-top">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-calculator me-2"></i>
+                                    Proses Prediksi & Simpan Data
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <!-- Quick Actions -->
+                        <div class="row g-3 mt-4">
+                            <div class="col-md-6">
+                                <a href="/download" class="btn btn-success w-100">
+                                    <i class="fas fa-download me-2"></i> 
+                                    Download Database Excel
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="/clear_database" class="btn btn-outline-danger w-100" 
+                                   onclick="return confirmDatabaseReset()">
+                                    <i class="fas fa-trash-alt me-2"></i> 
+                                    Reset Database
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column: Results -->
+            <div class="col-lg-6">
+                {% if prediction_result %}
+                <div class="result-container card fade-in" id="predictionResult">
+                    <div class="result-header">
+                        <div class="diagnosis-badge badge-{{ 'danger' if prediction_result.diagnosis == 'PRE-EKLAMPSIA' else 'success' }}">
+                            <i class="fas fa-{{ 'exclamation-triangle' if prediction_result.diagnosis == 'PRE-EKLAMPSIA' else 'check-circle' }} me-2"></i>
+                            {{ prediction_result.diagnosis }}
+                        </div>
+                        <div class="mt-4">
+                            <p class="text-white mb-0" style="font-size: 1.1rem;">
+                                <i class="fas fa-user-md me-2"></i>
+                                Hasil Prediksi Sistem ELM
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="result-details">
+                        <!-- Detail Metrics -->
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <div class="detail-label">ID Pasien</div>
+                                <div class="detail-value">{{ prediction_result.id_pasien if prediction_result.id_pasien else '' }}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Waktu Prediksi</div>
+                                <div class="detail-value" style="font-size: 1.1rem;">
+                                    {{ prediction_result.waktu if prediction_result.waktu else '' }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Input Data Table -->
+                        <h5 class="mb-3">
+                            <i class="fas fa-table me-2"></i>
+                            Ringkasan Data Input
+                        </h5>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <tbody>
+                                    <tr>
+                                        <th>Usia</th>
+                                        <td>{{ prediction_result.input_data.usia if prediction_result.input_data.usia else '' }}</td>
+                                        <th>BMI</th>
+                                        <td>{{ prediction_result.input_data.bmi if prediction_result.input_data.bmi else '' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Sistolik</th>
+                                        <td>{{ prediction_result.input_data.sistolik if prediction_result.input_data.sistolik else '' }}</td>
+                                        <th>Diastolik</th>
+                                        <td>{{ prediction_result.input_data.diastolik if prediction_result.input_data.diastolik else '' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Proteinuria</th>
+                                        <td>{{ prediction_result.input_data.proteinuria if prediction_result.input_data.proteinuria else '' }}</td>
+                                        <th>Diabetes</th>
+                                        <td>{{ prediction_result.input_data.diabetes if prediction_result.input_data.diabetes else '' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>HB</th>
+                                        <td>{{ prediction_result.input_data.hb if prediction_result.input_data.hb else '' }}</td>
+                                        <th>Berat Janin</th>
+                                        <td>{{ prediction_result.input_data.berat_janin if prediction_result.input_data.berat_janin else '' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Cairan Ketuban</th>
+                                        <td>{{ prediction_result.input_data.cairan_ketuban if prediction_result.input_data.cairan_ketuban else '' }}</td>
+                                        <th>Riwayat Hipertensi</th>
+                                        <td>{{ prediction_result.input_data.riwayat_hipertensi if prediction_result.input_data.riwayat_hipertensi else '' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Riwayat Keluarga</th>
+                                        <td>{{ prediction_result.input_data.riwayat_keluarga if prediction_result.input_data.riwayat_keluarga else '' }}</td>
+                                        <th>Primigravida</th>
+                                        <td>{{ prediction_result.input_data.primigravida if prediction_result.input_data.primigravida else '' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Kehamilan Kembar</th>
+                                        <td colspan="3">{{ prediction_result.input_data.kehamilan_kembar if prediction_result.input_data.kehamilan_kembar else '' }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Metadata -->
+                        <div class="text-center mt-4 pt-3 border-top">
+                            <small class="text-muted">
+                                <i class="fas fa-database me-1"></i> Total Pasien: {{ prediction_result.total_pasien if prediction_result.total_pasien else total_pasien }} |
+                                <i class="fas fa-file-excel me-1"></i> database_pasien.xlsx |
+                                <i class="fas fa-brain me-1"></i> Model: ELM
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Placeholder when no prediction -->
+                <div class="card placeholder-state fade-in">
+                    <div class="placeholder-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h3 class="text-muted mb-3">Menunggu Data Input</h3>
+                    <p class="placeholder-text">
+                        Masukkan data pasien di form sebelah kiri<br>
+                        Hasil prediksi akan ditampilkan di sini secara otomatis
+                    </p>
+                    <div class="mt-4">
+                        <i class="fas fa-arrow-left fa-2x text-muted"></i>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="app-footer fade-in">
+            <p class="footer-text">
+                Sistem Prediksi Pre-Eklampsia © 2024 - Menggunakan Extreme Learning Machine (ELM)
+            </p>
+            <div style="font-size: 0.85rem; color: var(--gray-color);">
+                <span class="me-3">
+                    <i class="fas fa-database me-1"></i>
+                    Total Pasien: {{ total_pasien if total_pasien else '0' }}
+                </span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Auto-replace comma with dot in numeric inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            // Format numeric inputs
+            const numericInputs = document.querySelectorAll('input[type="text"]');
+            numericInputs.forEach(input => {
+                // Auto-replace comma with dot
+                input.addEventListener('input', function() {
+                    this.value = this.value.replace(',', '.');
+                    validateNumericInput(this);
+                });
+                
+                // Auto-format on blur
+                input.addEventListener('blur', function() {
+                    if (this.value && !isNaN(this.value.replace(',', '.'))) {
+                        let value = parseFloat(this.value.replace(',', '.'));
+                        this.value = value.toFixed(2);
+                        validateNumericInput(this);
+                    }
+                });
+            });
+            
+            // Form validation
+            const form = document.getElementById('predictionForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    if (!validateForm()) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    // Update BMI final value before submission
+                    updateBMIFinalValue();
+                });
+            }
+            
+            // Auto-scroll to result if prediction exists
+            const predictionResult = document.getElementById('predictionResult');
+            if (predictionResult) {
+                setTimeout(function() {
+                    predictionResult.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                }, 500);
+            }
+            
+            // Add animation to elements
+            const animatedElements = document.querySelectorAll('.fade-in');
+            animatedElements.forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                    el.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+            
+            // BMI Method Selection
+            const bmiDirect = document.getElementById('bmi_direct');
+            const bmiCalculate = document.getElementById('bmi_calculate');
+            const heightWeightInput = document.getElementById('height_weight_input');
+            
+            if (bmiDirect && bmiCalculate) {
+                bmiDirect.addEventListener('change', function() {
+                    if (this.checked) {
+                        heightWeightInput.classList.remove('active');
+                        document.getElementById('bmi_input').removeAttribute('readonly');
+                        updateBMIFinalValue();
+                    }
+                });
+                
+                bmiCalculate.addEventListener('change', function() {
+                    if (this.checked) {
+                        heightWeightInput.classList.add('active');
+                        document.getElementById('bmi_input').setAttribute('readonly', 'readonly');
+                        calculateBMI();
+                    }
+                });
+            }
+            
+            // Calculate BMI when height or weight changes
+            const tinggiBadan = document.getElementById('tinggi_badan');
+            const beratBadan = document.getElementById('berat_badan');
+            
+            if (tinggiBadan && beratBadan) {
+                tinggiBadan.addEventListener('input', function() {
+                    if (bmiCalculate.checked) {
+                        calculateBMI();
+                    }
+                });
+                
+                beratBadan.addEventListener('input', function() {
+                    if (bmiCalculate.checked) {
+                        calculateBMI();
+                    }
+                });
+            }
+            
+            // Calculate BMI function
+            function calculateBMI() {
+                const tinggi = parseFloat(tinggiBadan.value);
+                const berat = parseFloat(beratBadan.value);
+                
+                if (!isNaN(tinggi) && !isNaN(berat) && tinggi > 0) {
+                    // Convert height from cm to meters
+                    const tinggiMeter = tinggi / 100;
+                    const bmi = berat / (tinggiMeter * tinggiMeter);
+                    
+                    // Update calculated BMI field
+                    document.getElementById('bmi_calculated').value = bmi.toFixed(2);
+                    
+                    // Update direct BMI input for consistency
+                    document.getElementById('bmi_input').value = bmi.toFixed(2);
+                    
+                    updateBMIFinalValue();
+                } else {
+                    document.getElementById('bmi_calculated').value = '';
+                    document.getElementById('bmi_input').value = '';
+                    updateBMIFinalValue();
+                }
+            }
+            
+            // Update BMI final value function
+            function updateBMIFinalValue() {
+                const bmiFinal = document.getElementById('bmi_final');
+                const bmiInput = document.getElementById('bmi_input');
+                
+                if (bmiInput && bmiInput.value) {
+                    bmiFinal.value = bmiInput.value;
+                } else {
+                    bmiFinal.value = '';
+                }
+            }
+            
+            // Initialize BMI method based on form data
+            function initializeBMIMethod() {
+                const bmiMethod = "{{ form_data.bmi_method if form_data.bmi_method else 'direct' }}";
+                const tinggi = "{{ form_data.tinggi_badan if form_data.tinggi_badan else '' }}";
+                const berat = "{{ form_data.berat_badan if form_data.berat_badan else '' }}";
+                
+                if (bmiMethod === 'calculate' && tinggi && berat) {
+                    document.getElementById('bmi_calculate').checked = true;
+                    document.getElementById('bmi_calculate').dispatchEvent(new Event('change'));
+                    document.getElementById('tinggi_badan').value = tinggi;
+                    document.getElementById('berat_badan').value = berat;
+                    calculateBMI();
+                } else {
+                    document.getElementById('bmi_direct').checked = true;
+                }
+            }
+            
+            // Call initialization
+            initializeBMIMethod();
+        });
+        
+        // Form validation functions
+        function validateNumericInput(input) {
+            const value = input.value.trim();
+            if (value === '') {
+                input.classList.remove('is-invalid', 'is-valid');
+                return true;
+            }
+            
+            const numericValue = parseFloat(value.replace(',', '.'));
+            if (isNaN(numericValue)) {
+                input.classList.add('is-invalid');
+                input.classList.remove('is-valid');
+                return false;
+            } else {
+                input.classList.remove('is-invalid');
+                input.classList.add('is-valid');
+                return true;
+            }
+        }
+        
+        function validateForm() {
+            let isValid = true;
+            const form = document.getElementById('predictionForm');
+            
+            // Validate required fields
+            const requiredFields = form.querySelectorAll('[required]');
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+            
+            // Validate numeric fields
+            const numericFields = form.querySelectorAll('input[type="text"]');
+            numericFields.forEach(field => {
+                if (!validateNumericInput(field)) {
+                    isValid = false;
+                }
+            });
+            
+            // Validate BMI based on selected method
+            const bmiMethodDirect = document.getElementById('bmi_direct').checked;
+            const bmiMethodCalculate = document.getElementById('bmi_calculate').checked;
+            const bmiInput = document.getElementById('bmi_input');
+            const tinggiBadan = document.getElementById('tinggi_badan');
+            const beratBadan = document.getElementById('berat_badan');
+            
+            if (bmiMethodCalculate) {
+                if (!tinggiBadan.value.trim() || !beratBadan.value.trim()) {
+                    tinggiBadan.classList.add('is-invalid');
+                    beratBadan.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    tinggiBadan.classList.remove('is-invalid');
+                    beratBadan.classList.remove('is-invalid');
+                }
+            }
+            
+            if (!bmiInput.value.trim()) {
+                bmiInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                bmiInput.classList.remove('is-invalid');
+            }
+            
+            if (!isValid) {
+                // Show error message
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'alert alert-danger mt-3';
+                errorMessage.innerHTML = `
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    Harap periksa kembali data yang dimasukkan. Semua field harus diisi dengan benar.
+                `;
+                
+                // Remove existing error messages
+                const existingAlerts = form.querySelectorAll('.alert');
+                existingAlerts.forEach(alert => alert.remove());
+                
+                form.insertBefore(errorMessage, form.firstChild);
+                
+                // Scroll to error
+                setTimeout(() => {
+                    errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+                
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Database reset confirmation
+        function confirmDatabaseReset() {
+            return confirm('⚠️ PERHATIAN!\n\nAnda akan menghapus semua data pasien dari database.\n\nData akan diekspor ke file backup sebelum dihapus.\n\nApakah Anda yakin ingin melanjutkan?');
+        }
+    </script>
+</body>
+</html>
