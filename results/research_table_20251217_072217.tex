@@ -1,0 +1,15 @@
+\begin{table}[htbp]
+\centering
+\caption{Performance Comparison of Machine Learning Models (10-Fold Cross Validation, Random State=9011)}
+\label{tab:model_comparison}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Model} & \textbf{F1-Score} & \textbf{AUC-ROC} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{Time (s)} \\
+\midrule
+XGBoost & 0.943 $\pm$ 0.023 & 0.981 $\pm$ 0.013 & 0.954 $\pm$ 0.020 & 0.946 $\pm$ 0.058 & 0.945 $\pm$ 0.035 & 0.07 \\
+RandomForest & 0.942 $\pm$ 0.017 & 0.984 $\pm$ 0.010 & 0.952 $\pm$ 0.016 & 0.921 $\pm$ 0.048 & 0.967 $\pm$ 0.037 & 0.38 \\
+ELM & 0.901 $\pm$ 0.036 & 0.949 $\pm$ 0.016 & 0.917 $\pm$ 0.034 & 0.873 $\pm$ 0.076 & 0.939 $\pm$ 0.058 & 0.01 \\
+LogisticRegression & 0.877 $\pm$ 0.037 & 0.937 $\pm$ 0.031 & 0.902 $\pm$ 0.033 & 0.880 $\pm$ 0.058 & 0.879 $\pm$ 0.054 & 0.04 \\
+\bottomrule
+\end{tabular}
+\end{table}
