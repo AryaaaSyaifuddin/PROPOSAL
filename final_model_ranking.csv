@@ -1,0 +1,5 @@
+Model,AUC,Accuracy,F1 Score,Precision,Recall,Total Rank
+Random Forest,1.0,2.0,1.0,2.0,1.0,7.0
+XGBoost,2.0,1.0,2.0,1.0,2.0,8.0
+Logistic Regression,3.0,4.0,3.0,4.0,3.0,17.0
+ELM,4.0,3.0,4.0,3.0,4.0,18.0

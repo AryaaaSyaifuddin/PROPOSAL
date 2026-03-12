@@ -1,0 +1,5 @@
+Model,Performance Rank,Stability Rank,Time Rank,Final Score
+ELM,3.2,1.0,1.0,1.733
+XGBoost,1.7,2.0,3.0,2.233
+Random Forest,1.3,3.0,4.0,2.767
+Logistic Regression,3.8,4.0,2.0,3.267

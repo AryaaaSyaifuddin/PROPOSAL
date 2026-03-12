@@ -1,0 +1,5 @@
+Model,Avg Time (s),Total Time (s)
+ELM,0.0295,0.2946
+Random Forest,0.7317,7.3175
+XGBoost,0.0753,0.7531
+Logistic Regression,0.0385,0.3851

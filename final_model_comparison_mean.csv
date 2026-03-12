@@ -1,0 +1,5 @@
+Model,AUC,Accuracy,F1 Score,Precision,Recall
+ELM,0.9357,0.9039,0.8807,0.8807,0.8904
+Logistic Regression,0.9374,0.9037,0.8809,0.8788,0.8947
+Random Forest,0.9842,0.9583,0.9481,0.9453,0.9561
+XGBoost,0.98,0.9584,0.9475,0.952,0.945
