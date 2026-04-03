@@ -1,4 +1,4 @@
-# app.py - ONE PAGE SYSTEM
+# app.py - ONE PAGE SYSTEM with RM & Nama Pasien
 import os
 import numpy as np
 import pandas as pd
@@ -64,13 +64,13 @@ except Exception as e:
     model = None
 
 def initialize_database():
-    """Buat file Excel jika belum ada"""
+    """Buat file Excel dengan kolom lengkap jika belum ada"""
     if not os.path.exists(app.config['DATABASE_FILE']):
-        # Buat DataFrame dengan kolom-kolom yang diperlukan
-        columns = model.feature_names + [
+        # Kolom database: identitas + data medis + hasil
+        columns = ['No_RM', 'Nama_Pasien'] + model.feature_names + [
             'diagnosis', 'probabilitas_pre_eklampsia', 
             'prediksi_numerik', 'threshold_decision',
-            'waktu_prediksi', 'id_pasien'
+            'waktu_prediksi'
         ]
         
         df = pd.DataFrame(columns=columns)
@@ -82,8 +82,8 @@ def initialize_database():
         df.to_excel(app.config['DATABASE_FILE'], index=False)
         print(f"📁 File database dibuat: {app.config['DATABASE_FILE']}")
 
-def save_to_database(patient_data, diagnosis, probability, prediction):
-    """Simpan data ke file Excel"""
+def save_to_database(patient_data, diagnosis, probability, prediction, no_rm, nama_pasien):
+    """Simpan data ke file Excel dengan identitas"""
     try:
         # Baca file yang sudah ada
         if os.path.exists(app.config['DATABASE_FILE']):
@@ -92,20 +92,17 @@ def save_to_database(patient_data, diagnosis, probability, prediction):
             initialize_database()
             df_existing = pd.read_excel(app.config['DATABASE_FILE'])
         
-        # Buat ID pasien (auto increment)
-        if len(df_existing) == 0:
-            patient_id = 1
-        else:
-            patient_id = df_existing['id_pasien'].max() + 1
-        
         # Siapkan data baru
-        new_data = patient_data.copy()
-        new_data['diagnosis'] = diagnosis
-        new_data['probabilitas_pre_eklampsia'] = probability
-        new_data['prediksi_numerik'] = prediction
-        new_data['threshold_decision'] = model.threshold
-        new_data['waktu_prediksi'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        new_data['id_pasien'] = patient_id
+        new_data = {
+            'No_RM': no_rm,                     # Format "RM-12345"
+            'Nama_Pasien': nama_pasien,
+            **patient_data,                      # data medis
+            'diagnosis': diagnosis,
+            'probabilitas_pre_eklampsia': probability,
+            'prediksi_numerik': prediction,
+            'threshold_decision': model.threshold,
+            'waktu_prediksi': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
         
         # Convert ke DataFrame
         df_new = pd.DataFrame([new_data])
@@ -116,14 +113,17 @@ def save_to_database(patient_data, diagnosis, probability, prediction):
         # Simpan ke Excel
         df_updated.to_excel(app.config['DATABASE_FILE'], index=False)
         
-        return patient_id, len(df_updated)
+        # Total pasien setelah simpan
+        total_pasien = len(df_updated)
+        
+        return total_pasien
         
     except Exception as e:
         print(f"❌ Error menyimpan ke database: {e}")
-        return None, 0
+        return 0
 
 def preprocess_input(form_data):
-    """Proses input dari form"""
+    """Proses input dari form (hanya data medis)"""
     patient_data = {}
     
     # Numerical features
@@ -185,7 +185,23 @@ def index():
             # Simpan data form untuk ditampilkan kembali
             form_data = request.form.to_dict()
             
-            # Process input data
+            # Ambil identitas pasien
+            no_rm_raw = request.form.get('no_rm', '').strip()
+            nama_pasien = request.form.get('nama_pasien', '').strip()
+            
+            # Validasi identitas wajib
+            if not no_rm_raw or not nama_pasien:
+                flash('Nomor RM dan Nama Pasien harus diisi!', 'danger')
+                return render_template('index.html', model_loaded=True, 
+                                     threshold=model.threshold,
+                                     total_pasien=get_total_pasien(),
+                                     prediction_result=None,
+                                     form_data=form_data)
+            
+            # Format nomor RM dengan prefix RM-
+            no_rm = f"RM-{no_rm_raw}"
+            
+            # Process input data medis
             patient_data = preprocess_input(request.form)
             
             # Convert to DataFrame for preprocessing
@@ -202,8 +218,8 @@ def index():
             diagnosis = "PRE-EKLAMPSIA" if prediction == 1 else "TIDAK PRE-EKLAMPSIA"
             diagnosis_class = "danger" if prediction == 1 else "success"
             
-            # Save to database
-            patient_id, total_pasien = save_to_database(patient_data, diagnosis, probability, prediction)
+            # Save to database (dengan identitas)
+            total_pasien = save_to_database(patient_data, diagnosis, probability, prediction, no_rm, nama_pasien)
             
             # Prepare result
             prediction_result = {
@@ -214,25 +230,19 @@ def index():
                 'threshold': f"{model.threshold:.4f}",
                 'prediksi_numerik': prediction,
                 'waktu': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                'id_pasien': patient_id,
                 'total_pasien': total_pasien,
                 'input_data': patient_data,
-                'form_data': form_data  # Untuk populate form kembali
+                'no_rm': no_rm,               # Tambahkan untuk ditampilkan
+                'nama_pasien': nama_pasien,    # Tambahkan untuk ditampilkan
+                'form_data': form_data
             }
             
-            flash(f'✅ Prediksi berhasil! ID Pasien: {patient_id}', 'success')
+            flash(f'✅ Prediksi berhasil! Data pasien {nama_pasien} (RM: {no_rm}) tersimpan.', 'success')
             
         except Exception as e:
             flash(f'❌ Error: {str(e)}', 'danger')
     
-    # Hitung jumlah pasien yang sudah ada
-    total_pasien = 0
-    if os.path.exists(app.config['DATABASE_FILE']):
-        try:
-            df = pd.read_excel(app.config['DATABASE_FILE'])
-            total_pasien = len(df)
-        except:
-            pass
+    total_pasien = get_total_pasien()
     
     return render_template('index.html',
                          model_loaded=model is not None,
@@ -240,6 +250,16 @@ def index():
                          total_pasien=total_pasien,
                          prediction_result=prediction_result,
                          form_data=form_data)
+
+def get_total_pasien():
+    """Helper untuk mendapatkan jumlah pasien di database"""
+    if os.path.exists(app.config['DATABASE_FILE']):
+        try:
+            df = pd.read_excel(app.config['DATABASE_FILE'])
+            return len(df)
+        except:
+            return 0
+    return 0
 
 @app.route('/download')
 def download():
@@ -262,7 +282,8 @@ def download():
     
     return render_template('index.html',
                          model_loaded=model is not None,
-                         threshold=model.threshold if model else 0.6243)
+                         threshold=model.threshold if model else 0.6243,
+                         total_pasien=get_total_pasien())
 
 @app.route('/clear_database')
 def clear_database():
@@ -273,6 +294,9 @@ def clear_database():
             backup_name = f"data/backup_database_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
             os.rename(app.config['DATABASE_FILE'], backup_name)
             flash(f'Database berhasil direset! Backup disimpan sebagai: {backup_name}', 'success')
+            
+            # Buat ulang database dengan struktur yang benar
+            initialize_database()
         else:
             flash('Database tidak ditemukan!', 'warning')
     except Exception as e:
@@ -280,7 +304,8 @@ def clear_database():
     
     return render_template('index.html',
                          model_loaded=model is not None,
-                         threshold=model.threshold if model else 0.6243)
+                         threshold=model.threshold if model else 0.6243,
+                         total_pasien=get_total_pasien())
 
 if __name__ == '__main__':
     # Create necessary directories

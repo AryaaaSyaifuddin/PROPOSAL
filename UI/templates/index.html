@@ -48,7 +48,7 @@
         }
         
         .app-container {
-            max-width: 80%;
+            max-width: 55%;
             margin: 0 auto;
             padding: 24px;
         }
@@ -582,23 +582,23 @@
             </div>
             <div class="metric-grid">
                 <div class="metric-item">
-                    <div class="metric-value">92.56%</div>
+                    <div class="metric-value">91.02%</div>
                     <div class="metric-label">Accuracy</div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-value">90.22%</div>
+                    <div class="metric-value">87.12%</div>
                     <div class="metric-label">Precision</div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-value">91.21%</div>
+                    <div class="metric-value">91.73%</div>
                     <div class="metric-label">Recall</div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-value">90.71%</div>
+                    <div class="metric-value">89.11%</div>
                     <div class="metric-label">F1-Score</div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-value">96.90%</div>
+                    <div class="metric-value">94.54%</div>
                     <div class="metric-label">AUC-ROC</div>
                 </div>
             </div>
@@ -615,6 +615,36 @@
                     </div>
                     <div class="card-body">
                         <form method="POST" action="/" id="predictionForm">
+
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-id-card"></i>
+                                            Nomor Rekam Medis
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light">RM-</span>
+                                            <input type="text" class="form-control" name="no_rm" 
+                                                placeholder="Contoh: 12345" required
+                                                value="{{ form_data.no_rm if form_data.no_rm else '' }}">
+                                        </div>
+                                        <small class="text-muted">Isi nomor RM tanpa tanda hubung</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label">
+                                            <i class="fas fa-user-circle"></i>
+                                            Nama Pasien
+                                        </label>
+                                        <input type="text" class="form-control" name="nama_pasien" 
+                                            placeholder="Nama lengkap pasien" required
+                                            value="{{ form_data.nama_pasien if form_data.nama_pasien else '' }}">
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="row">
                                 <!-- Column 1 -->
                                 <div class="col-md-6">
@@ -874,12 +904,18 @@
                     </div>
                     
                     <div class="result-details">
+                        <div class="detail-grid" style="margin-bottom: 20px;">
+                            <div class="detail-item">
+                                <div class="detail-label">Nomor RM</div>
+                                <div class="detail-value">{{ prediction_result.no_rm if prediction_result.no_rm else '' }}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Nama Pasien</div>
+                                <div class="detail-value">{{ prediction_result.nama_pasien if prediction_result.nama_pasien else '' }}</div>
+                            </div>
+                        </div>
                         <!-- Detail Metrics -->
                         <div class="detail-grid">
-                            <div class="detail-item">
-                                <div class="detail-label">ID Pasien</div>
-                                <div class="detail-value">{{ prediction_result.id_pasien if prediction_result.id_pasien else '' }}</div>
-                            </div>
                             <div class="detail-item">
                                 <div class="detail-label">Waktu Prediksi</div>
                                 <div class="detail-value" style="font-size: 1.1rem;">
@@ -1176,12 +1212,35 @@
             });
             
             // Validate numeric fields
+            // Validate numeric fields (skip no_rm and nama_pasien)
             const numericFields = form.querySelectorAll('input[type="text"]');
             numericFields.forEach(field => {
+                const name = field.getAttribute('name');
+                if (name === 'no_rm' || name === 'nama_pasien') {
+                    return; // skip these fields
+                }
                 if (!validateNumericInput(field)) {
                     isValid = false;
                 }
             });
+
+            // Cek nomor RM
+            const noRmInput = document.querySelector('input[name="no_rm"]');
+            if (!noRmInput.value.trim()) {
+                noRmInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                noRmInput.classList.remove('is-invalid');
+            }
+
+            // Cek nama pasien
+            const namaInput = document.querySelector('input[name="nama_pasien"]');
+            if (!namaInput.value.trim()) {
+                namaInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                namaInput.classList.remove('is-invalid');
+            }
             
             // Validate BMI based on selected method
             const bmiMethodDirect = document.getElementById('bmi_direct').checked;
